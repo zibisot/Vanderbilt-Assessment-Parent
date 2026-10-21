@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NICHQ Vanderbilt Assessment Scale - Penilaian Ibu Bapa</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN for Visual Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; color: black !important; }
+            .shadow-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+            .page-break { page-break-before: always; }
+        }
+        .shadow-card {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+        /* Custom styled scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+    <!-- Sticky Header & Progress Bar -->
+    <header class="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm no-print">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-xl shadow-md">
+                    <i class="fa-solid me-0 fa-clipboard-list"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold text-slate-900 leading-tight">Skala Penilaian NICHQ Vanderbilt</h1>
+                    <p class="text-xs text-slate-500 font-medium">Borang Penilaian Ibu Bapa (Bahasa Malaysia)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="resetFormWithConfirmation()" class="px-3 py-1.5 text-xs md:text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all border border-slate-200 flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i> <span class="hidden sm:inline">Reset</span>
+                </button>
+                <button onclick="scrollToResults()" class="px-3.5 py-1.5 text-xs md:text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-chart-pie"></i> <span class="hidden sm:inline">Lihat Keputusan</span>
+                </button>
+            </div>
+        </div>
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-100 h-2 relative">
+            <div id="progressBar" class="bg-brand-600 h-2 transition-all duration-300 w-0"></div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 py-6 md:py-8 flex-grow w-full space-y-6">
+
+        <!-- Banner / Instructions Card -->
+        <div class="bg-gradient-to-r from-brand-900 via-brand-800 to-slate-900 text-white rounded-2xl p-6 shadow-lg relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl font-bold pointer-events-none">
+                <i class="fa-solid fa-brain"></i>
+            </div>
+            <div class="relative z-10 max-w-3xl space-y-3">
+                <span class="inline-block px-3 py-1 bg-brand-500/30 text-brand-200 text-xs font-semibold rounded-full border border-brand-400/20">
+                    <i class="fa-solid fa-circle-info mr-1"></i> Arahan Pengisian
+                </span>
+                <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight">NICHQ Vanderbilt Assessment Scale</h2>
+                <p class="text-sm md:text-base text-slate-200 leading-relaxed">
+                    Sila nilai tingkah laku anak anda berpadanan dengan usianya dalam tempoh <strong>6 bulan lepas</strong>. Skor akan dikira secara automatik sejurus anda mengisi maklumat dan jawapan.
+                </p>
+            </div>
+        </div>
+
+        <!-- Notification / Info Message Box -->
+        <div id="messageBox" class="hidden p-4 rounded-xl text-sm font-medium transition-all flex items-center gap-3"></div>
+
+        <form id="vanderbiltForm" onsubmit="event.preventDefault();">
+            
+            <!-- SECTION: Child & Parent Information -->
+            <section class="bg-white rounded-2xl p-6 border border-slate-200 shadow-card space-y-4">
+                <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+                    <i class="fa-solid fa-user-gear text-brand-600 text-lg"></i>
+                    <h3 class="text-lg font-bold text-slate-900">1. Maklumat Kanak-kanak & Ibu Bapa</h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5" for="childName">Nama Kanak-kanak <span class="text-red-500">*</span></label>
+                        <input type="text" id="childName" required placeholder="Cth: Muhammad Amir" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5" for="dob">Tarikh Lahir <span class="text-red-500">*</span></label>
+                        <input type="date" id="dob" required class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5" for="assessmentDate">Tarikh Penilaian <span class="text-red-500">*</span></label>
+                        <input type="date" id="assessmentDate" required class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5" for="parentName">Nama Ibu / Bapa / Penjaga <span class="text-red-500">*</span></label>
+                        <input type="text" id="parentName" required placeholder="Cth: Puan Fatimah" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5" for="phone">No. Telefon</label>
+                        <input type="tel" id="phone" placeholder="012-3456789" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5" for="treatmentStatus">Status Rawatan Semasa</label>
+                        <select id="treatmentStatus" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all">
+                            <option value="Bukan dalam rawatan">Bukan dalam rawatan</option>
+                            <option value="Sedang jalani rawatan">Sedang jalani rawatan</option>
+                            <option value="Tidak pasti">Tidak pasti</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: SIMPTOM (Q1 - Q47) -->
+            <section class="bg-white rounded-2xl p-6 border border-slate-200 shadow-card space-y-6 mt-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-2">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-brand-600"></i> Bahagian I: Penilaian Simptom (Soalan 1 – 47)
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Nilai kualiti tingkah laku mengikut perbandingan usia sebaya anak anda.</p>
+                    </div>
+                    <div class="inline-flex text-xs bg-slate-100 p-1 rounded-lg text-slate-600 font-medium">
+                        <span class="px-2 py-1">0 = Tidak Pernah</span>
+                        <span class="px-2 py-1">1 = Kadang-kadang</span>
+                        <span class="px-2 py-1">2 = Selalu</span>
+                        <span class="px-2 py-1">3 = Sangat Selalu</span>
+                    </div>
+                </div>
+
+                <!-- Subsections Containers -->
+                <div id="subsectionsContainer" class="space-y-8"></div>
+            </section>
+
+            <!-- SECTION 3: PERFORMANCE / PRESTASI (Q48 - Q55) -->
+            <section class="bg-white rounded-2xl p-6 border border-slate-200 shadow-card space-y-6 mt-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-2">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-graduation-cap text-brand-600"></i> Bahagian II: Penilaian Prestasi & Pencapaian (Soalan 48 – 55)
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Nilai prestasi pencapaian akademik dan hubungan sosial.</p>
+                    </div>
+                    <div class="inline-flex text-xs bg-slate-100 p-1 rounded-lg text-slate-600 font-medium">
+                        <span class="px-2 py-0.5">1=Cemerlang</span>
+                        <span class="px-2 py-0.5">2=Baik</span>
+                        <span class="px-2 py-0.5">3=Sederhana</span>
+                        <span class="px-2 py-0.5">4=Sikit Bermasalah</span>
+                        <span class="px-2 py-0.5">5=Sangat Bermasalah</span>
+                    </div>
+                </div>
+
+                <div id="performanceContainer" class="space-y-8"></div>
+            </section>
+        </form>
+
+        <!-- AUTOMATED SCORING & REPORT SECTION -->
+        <section id="resultsSection" class="bg-white rounded-2xl p-6 md:p-8 border-2 border-brand-600 shadow-xl space-y-6 mt-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-4 gap-4">
+                <div>
+                    <span class="px-3 py-1 bg-brand-100 text-brand-800 text-xs font-extrabold uppercase tracking-wider rounded-full inline-block mb-1">
+                        Modul Skoring Automatik
+                    </span>
+                    <h3 class="text-2xl font-extrabold text-slate-900">Laporan Keputusan Penilaian</h3>
+                    <p class="text-xs text-slate-500">Skor dikira berdasarkan garis panduan klinikal AAP & NICHQ Vanderbilt Assessment.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 no-print">
+                    <button onclick="window.print()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm rounded-xl transition-all shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-print"></i> Cetak / PDF
+                    </button>
+                    <button onclick="copySummaryText()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium text-sm rounded-xl transition-all shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-copy"></i> Salin Keputusan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Profile Summary Bar -->
+            <div id="reportProfileHeader" class="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs md:text-sm">
+                <div>
+                    <span class="text-slate-500 block">Nama Anak:</span>
+                    <strong id="repChildName" class="text-slate-900 font-semibold">-</strong>
+                </div>
+                <div>
+                    <span class="text-slate-500 block">Tarikh Lahir:</span>
+                    <strong id="repDOB" class="text-slate-900 font-semibold">-</strong>
+                </div>
+                <div>
+                    <span class="text-slate-500 block">Tarikh Penilaian:</span>
+                    <strong id="repDate" class="text-slate-900 font-semibold">-</strong>
+                </div>
+                <div>
+                    <span class="text-slate-500 block">Penilai / Status:</span>
+                    <strong id="repParent" class="text-slate-900 font-semibold">-</strong>
+                </div>
+            </div>
+
+            <!-- Summary Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 text-xs font-bold uppercase">
+                            <th class="p-3">Kategori / Domain Subskala</th>
+                            <th class="p-3 text-center">Julat</th>
+                            <th class="p-3 text-center">Jumlah Skor</th>
+                            <th class="p-3 text-center">Bil. Skor 2 atau 3</th>
+                            <th class="p-3">Penilaian Kriteria Klinikal</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        <!-- Inattention -->
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-3 font-semibold text-slate-800">Inattention / Kurang Tumpuan</td>
+                            <td class="p-3 text-center text-slate-500">1 – 9</td>
+                            <td class="p-3 text-center font-bold text-slate-900" id="resInattTotal">0</td>
+                            <td class="p-3 text-center font-bold text-slate-900" id="resInattCount">0 / 9</td>
+                            <td class="p-3" id="resInattStatus">-</td>
+                        </tr>
+                        <!-- Hyperactivity -->
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-3 font-semibold text-slate-800">Hyperactivity / Impulsivity (Hiperaktif)</td>
+                            <td class="p-3 text-center text-slate-500">10 – 18</td>
+                            <td class="p-3 text-center font-bold text-slate-900" id="resHyperTotal">0</td>
+                            <td class="p-3 text-center font-bold text-slate-900" id="resHyperCount">0 / 9</td>
+                            <td class="p-3" id="resHyperStatus">-</td>
+                        </tr>
+                        <!-- ADHD Total Subscale -->
+                        <tr class="bg-brand-50/50 font-medium">
+                            <td class="p-3 font-bold text-brand-900">Subskala ADHD Keseluruhan</td>
+                            <td class="p-3 text-center text-brand-700">1 – 18</td>
+                            <td class="p-3 text-center font-extrabold text-brand-900" id="resADHDTotal">0</td>
+                            <td class="p-3 text-center font-extrabold text-brand-900" id="resADHDCount">0 / 18</td>
+                            <td class="p-3" id="resADHDStatus">-</td>
+                        </tr>
+                        <!-- ODD -->
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-3 font-semibold text-slate-800">Oppositional Defiant Disorder (ODD)</td>
+                            <td class="p-3 text-center text-slate-500">19 – 26</td>
+                            <td class="p-3 text-center font-bold text-slate-900" id="resODDTotal">0</td>
+                            <td class="p-3 text-center font-bold text-slate-900" id="resODDCount">0 / 8</td>
+                            <td class="p-3" id="resODDStatus">-</td>
+                        </tr>
+                        <!-- CD -->
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-3 font-semibold text-slate-800">Conduct Disorder (CD)</td>
+                            <td class="p-3 text-center text-slate-500">27 – 40</td>
+                            <td class="p-3 text-center font-bold text-slate-900" id="resCDTotal">0</td>
+                            <td class="p-3 text-center font-bold text-slate-900" id="resCDCount">0 / 14</td>
+                            <td class="p-3" id="resCDStatus">-</td>
+                        </tr>
+                        <!-- Anxiety / Depression -->
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-3 font-semibold text-slate-800">Anxiety / Depression (Anksieti / Kemurungan)</td>
+                            <td class="p-3 text-center text-slate-500">41 – 47</td>
+                            <td class="p-3 text-center font-bold text-slate-900" id="resADTotal">0</td>
+                            <td class="p-3 text-center font-bold text-slate-900" id="resADCount">0 / 7</td>
+                            <td class="p-3" id="resADStatus">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Performance Summary Table -->
+            <div class="overflow-x-auto pt-2">
+                <table class="w-full text-left text-sm border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 text-xs font-bold uppercase">
+                            <th class="p-3">Domain Prestasi & Pencapaian</th>
+                            <th class="p-3 text-center">Julat Soalan</th>
+                            <th class="p-3 text-center">Purata Skor</th>
+                            <th class="p-3 text-center">Bil. Item Bermasalah (Skor 4 / 5)</th>
+                            <th class="p-3">Penilaian Prestasi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-3 font-semibold text-slate-800">Pencapaian Akademik & Hubungan Sosial</td>
+                            <td class="p-3 text-center text-slate-500">48 – 55</td>
+                            <td class="p-3 text-center font-bold text-slate-900" id="resPerfAvg">0.00</td>
+                            <td class="p-3 text-center font-bold text-slate-900" id="resPerfCount">0 / 8</td>
+                            <td class="p-3" id="resPerfStatus">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Visual Chart Dashboard -->
+            <div class="pt-4 grid grid-cols-1 md:grid-cols-2 gap-6 no-print">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col items-center">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Profil Skor Simptom</h4>
+                    <div class="w-full h-64 relative">
+                        <canvas id="symptomsChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col items-center">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Status Kriteria Klinikal</h4>
+                    <div class="w-full h-64 relative">
+                        <canvas id="criteriaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clinical Disclaimer & Information -->
+            <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-1">
+                <p class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Nota Penting Kepada Pegawai Perubatan / Pengguna:</p>
+                <p class="text-amber-800">
+                    Borang penilaian ini adalah alat saringan (*screening tool*) dan <strong>bukan pengesahan diagnosis muktamad</strong>. Diagnosis ADHD, ODD, CD, atau masalah kesihatan mental lain mesti disahkan oleh pakar perubatan bertauliah melalui penilaian klinikal menyeluruh.
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Copyright -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-500 space-y-1">
+        <div class="max-w-6xl mx-auto px-4">
+            <p>*Copyright 2002 American Academy of Pediatrics and National Initiative for Children's Healthcare Quality. Revised 1102.</p>
+            <p>Translated in Bahasa Malaysia by Azizah Othman et al. 2011.</p>
+            <p class="pt-2 text-slate-400 font-medium">NICHQ Vanderbilt Assessment Scale Interactive Web App &copy; 2026</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Data Structures for Questions
+        const symptomCategories = [
+            {
+                title: "Inattention / Kurang Tumpuan",
+                subtext: "Soalan 1 - 9",
+                questions: [
+                    { id: 1, text: "Tidak beri tumpuan kepada perkara khusus/ terperinci, buat silap kerana cuai" },
+                    { id: 2, text: "Sukar meneruskan tumpuan terhadap apa yang perlu disiapkan" },
+                    { id: 3, text: "Seperti tidak mendengar apabila seseorang bercakap kepadanya" },
+                    { id: 4, text: "Tidak menuruti arahan, gagal siapkan kerja (bukan kerana enggan/ tidak faham)" },
+                    { id: 5, text: "Sukar menyusun tugasan dan aktiviti" },
+                    { id: 6, text: "Mengelak, tidak suka, tidak mahu mulakan aktiviti yang perlu banyak berfikir" },
+                    { id: 7, text: "Kehilangan benda yang perlu untuk tugasan (cth: mainan, pensel atau buku)" },
+                    { id: 8, text: "Mudah terganggu dengan bunyi bising atau lain-lain rangsangan" },
+                    { id: 9, text: "Pelupa dengan aktiviti harian" }
+                ]
+            },
+            {
+                title: "Hyperactivity / Impulsivity (Hiperaktif)",
+                subtext: "Soalan 10 - 18",
+                questions: [
+                    { id: 10, text: "Menggelisah dengan tangan atau kaki atau menggeliang-geliut ketika duduk" },
+                    { id: 11, text: "Meninggalkan tempat duduk apabila diminta terus duduk" },
+                    { id: 12, text: "Berlari atau memanjat apabila diminta terus duduk" },
+                    { id: 13, text: "Sukar bermain atau mulakan aktiviti permainan yang senyap" },
+                    { id: 14, text: "Sentiasa bergerak / tidak boleh duduk diam" },
+                    { id: 15, text: "Bercakap banyak" },
+                    { id: 16, text: "Terlalu cepat menjawab sebelum soalan selesai diberi" },
+                    { id: 17, text: "Sukar menunggu giliran" },
+                    { id: 18, text: "Menyampuk atau menganggu perbualan atau aktiviti orang lain" }
+                ]
+            },
+            {
+                title: "Oppositional Defiant Disorder (ODD)",
+                subtext: "Soalan 19 - 26",
+                questions: [
+                    { id: 19, text: "Membantah/ tidak bersetuju dengan orang dewasa" },
+                    { id: 20, text: "Mudah naik angin" },
+                    { id: 21, text: "Menentang atau menolak permintaan atau arahan orang dewasa" },
+                    { id: 22, text: "Sengaja mengganggu orang lain" },
+                    { id: 23, text: "Menyalahkan orang lain atas kesalahan sendiri" },
+                    { id: 24, text: "Mudah tersinggung atau mudah terganggu dengan orang lain" },
+                    { id: 25, text: "Pemarah" },
+                    { id: 26, text: "Hasad dan berdendam" }
+                ]
+            },
+            {
+                title: "Conduct Disorder (CD)",
+                subtext: "Soalan 27 - 40",
+                questions: [
+                    { id: 27, text: "Membuli, mengancam atau mengertak orang lain" },
+                    { id: 28, text: "Memulakan pergaduhan" },
+                    { id: 29, text: "Menipu untuk keluar dari masalah, mengelak tanggungjawab ('mengena' orang)" },
+                    { id: 30, text: "Ponteng sekolah tanpa kebenaran" },
+                    { id: 31, text: "Bertindak kejam secara fizikal terhadap orang lain" },
+                    { id: 32, text: "Mencuri benda yang bernilai/ berharga" },
+                    { id: 33, text: "Sengaja merosakkan harta benda orang lain" },
+                    { id: 34, text: "Guna senjata yang boleh sebabkan kecederaan serius (pisau, kayu pemukul)" },
+                    { id: 35, text: "Kejam terhadap binatang secara fizikal" },
+                    { id: 36, text: "Sengaja menyalakan api untuk menyebabkan kemusnahan" },
+                    { id: 37, text: "Memecahkan rumah, kedai atau kereta orang lain" },
+                    { id: 38, text: "Keluar malam tanpa kebenaran" },
+                    { id: 39, text: "Lari dari rumah semalaman" },
+                    { id: 40, text: "Memaksa seseorang kearah tingkahlaku seksual" }
+                ]
+            },
+            {
+                title: "Anxiety / Depression (Anksieti / Kemurungan)",
+                subtext: "Soalan 41 - 47",
+                questions: [
+                    { id: 41, text: "Penakut, cemas atau risau" },
+                    { id: 42, text: "Takut mencuba sesuatu yang baru kerana takut melakukan kesilapan" },
+                    { id: 43, text: "Rasa diri tidak berharga atau rendah diri" },
+                    { id: 44, text: "Menyalahkan diri sendiri bila ada masalah, rasa bersalah" },
+                    { id: 45, text: "Rasa sunyi, tidak diperlukan, tidak disayangi, 'tiada orang sayang dirinya'" },
+                    { id: 46, text: "Sedih, tidak gembira atau tertekan" },
+                    { id: 47, text: "Mudah rasa malu" }
+                ]
+            }
+        ];
+
+        const performanceCategories = [
+            {
+                title: "Pencapaian Akademik Sekolah",
+                subtext: "Soalan 48 - 51",
+                questions: [
+                    { id: 48, text: "Pencapaian keseluruhan di sekolah" },
+                    { id: 49, text: "Membaca" },
+                    { id: 50, text: "Menulis" },
+                    { id: 51, text: "Matematik" }
+                ]
+            },
+            {
+                title: "Hubungan Sosial & Aktiviti",
+                subtext: "Soalan 52 - 55",
+                questions: [
+                    { id: 52, text: "Hubungan dengan ibu bapa" },
+                    { id: 53, text: "Hubungan dengan adik-beradik" },
+                    { id: 54, text: "Hubungan dengan rakan sebaya" },
+                    { id: 55, text: "Penyertaan dalam aktiviti persatuan / kumpulan" }
+                ]
+            }
+        ];
+
+        // Global Chart Instances
+        let symptomsChartInstance = null;
+        let criteriaChartInstance = null;
+
+        // Initialize UI on Load
+        window.onload = function() {
+            // Set Default Assessment Date to Today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('assessmentDate').value = today;
+
+            renderQuestions();
+            setupEventListeners();
+            calculateAndRenderResults();
+        };
+
+        // Render Question Tables
+        function renderQuestions() {
+            const container = document.getElementById('subsectionsContainer');
+            container.innerHTML = '';
+
+            symptomCategories.forEach(sub => {
+                const subDiv = document.createElement('div');
+                subDiv.className = 'space-y-3';
+                
+                let html = `
+                    <div class="flex items-center justify-between bg-slate-100 px-4 py-2 rounded-lg border-l-4 border-brand-600">
+                        <span class="font-bold text-sm text-slate-800">${sub.title}</span>
+                        <span class="text-xs text-slate-500 font-medium">${sub.subtext}</span>
+                    </div>
+                    <div class="space-y-2">
+                `;
+
+                sub.questions.forEach(q => {
+                    html += `
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200/80 transition-all gap-3">
+                            <div class="flex items-start gap-2.5 sm:max-w-[65%]">
+                                <span class="bg-slate-200 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-md mt-0.5">${q.id}</span>
+                                <span class="text-sm font-medium text-slate-800">${q.text}</span>
+                            </div>
+                            <div class="flex items-center justify-between sm:justify-end gap-1 sm:gap-2 self-end sm:self-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200">
+                                ${[0,1,2,3].map(val => `
+                                    <label class="flex-1 sm:flex-none flex flex-col items-center cursor-pointer p-1.5 rounded-lg hover:bg-white transition-all text-center">
+                                        <input type="radio" name="q${q.id}" value="${val}" ${val===0 ? 'checked' : ''} onchange="onAnswerChange()" class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                        <span class="text-[10px] text-slate-500 mt-1 font-semibold">${val === 0 ? '0' : val === 1 ? '1' : val === 2 ? '2' : '3'}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+                subDiv.innerHTML = html;
+                container.appendChild(subDiv);
+            });
+
+            // Render Performance Questions
+            const perfContainer = document.getElementById('performanceContainer');
+            perfContainer.innerHTML = '';
+
+            performanceCategories.forEach(sub => {
+                const subDiv = document.createElement('div');
+                subDiv.className = 'space-y-3';
+
+                let html = `
+                    <div class="flex items-center justify-between bg-slate-100 px-4 py-2 rounded-lg border-l-4 border-brand-600">
+                        <span class="font-bold text-sm text-slate-800">${sub.title}</span>
+                        <span class="text-xs text-slate-500 font-medium">${sub.subtext}</span>
+                    </div>
+                    <div class="space-y-2">
+                `;
+
+                sub.questions.forEach(q => {
+                    html += `
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200/80 transition-all gap-3">
+                            <div class="flex items-start gap-2.5 sm:max-w-[60%]">
+                                <span class="bg-slate-200 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-md mt-0.5">${q.id}</span>
+                                <span class="text-sm font-medium text-slate-800">${q.text}</span>
+                            </div>
+                            <div class="flex items-center justify-between sm:justify-end gap-1 sm:gap-1.5 self-end sm:self-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200">
+                                ${[1,2,3,4,5].map(val => `
+                                    <label class="flex-1 sm:flex-none flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-white transition-all text-center">
+                                        <input type="radio" name="q${q.id}" value="${val}" ${val===1 ? 'checked' : ''} onchange="onAnswerChange()" class="w-4 h-4 text-brand-600 focus:ring-brand-500">
+                                        <span class="text-[10px] text-slate-500 mt-1 font-semibold">${val}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+                subDiv.innerHTML = html;
+                perfContainer.appendChild(subDiv);
+            });
+        }
+
+        function setupEventListeners() {
+            ['childName', 'dob', 'assessmentDate', 'parentName', 'treatmentStatus'].forEach(id => {
+                document.getElementById(id).addEventListener('input', updateReportHeader);
+            });
+        }
+
+        function updateReportHeader() {
+            document.getElementById('repChildName').innerText = document.getElementById('childName').value || '-';
+            document.getElementById('repDOB').innerText = document.getElementById('dob').value || '-';
+            document.getElementById('repDate').innerText = document.getElementById('assessmentDate').value || '-';
+            
+            const parent = document.getElementById('parentName').value || '-';
+            const status = document.getElementById('treatmentStatus').value;
+            document.getElementById('repParent').innerText = `${parent} (${status})`;
+        }
+
+        function onAnswerChange() {
+            updateProgressBar();
+            calculateAndRenderResults();
+        }
+
+        function updateProgressBar() {
+            const totalQuestions = 55;
+            let answeredCount = 0;
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                if (document.querySelector(`input[name="q${i}"]:checked`)) {
+                    answeredCount++;
+                }
+            }
+
+            const percent = Math.round((answeredCount / totalQuestions) * 100);
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+
+        function getQValue(qNum) {
+            const radio = document.querySelector(`input[name="q${qNum}"]:checked`);
+            return radio ? parseInt(radio.value) : 0;
+        }
+
+        // Core Calculation & Scoring Logic
+        function calculateAndRenderResults() {
+            updateReportHeader();
+
+            // Range Definitions
+            const rangeInatt = Array.from({length: 9}, (_, i) => i + 1);     // 1-9
+            const rangeHyper = Array.from({length: 9}, (_, i) => i + 10);    // 10-18
+            const rangeODD = Array.from({length: 8}, (_, i) => i + 19);      // 19-26
+            const rangeCD = Array.from({length: 14}, (_, i) => i + 27);      // 27-40
+            const rangeAD = Array.from({length: 7}, (_, i) => i + 41);       // 41-47
+            const rangePerf = Array.from({length: 8}, (_, i) => i + 48);     // 48-55
+
+            function processDomain(range, thresholdVal = 2) {
+                let total = 0;
+                let countHigh = 0;
+                range.forEach(q => {
+                    const val = getQValue(q);
+                    total += val;
+                    if (val >= thresholdVal) countHigh++;
+                });
+                return { total, countHigh };
+            }
+
+            const inatt = processDomain(rangeInatt, 2);
+            const hyper = processDomain(rangeHyper, 2);
+            const odd = processDomain(rangeODD, 2);
+            const cd = processDomain(rangeCD, 2);
+            const ad = processDomain(rangeAD, 2);
+            const perf = processDomain(rangePerf, 4); // Performance considers 4 or 5 as problem
+
+            // 1. Inattention (1-9)
+            document.getElementById('resInattTotal').innerText = inatt.total;
+            document.getElementById('resInattCount').innerText = `${inatt.countHigh} / 9`;
+            const isInattPositive = inatt.countHigh >= 6;
+            document.getElementById('resInattStatus').innerHTML = isInattPositive
+                ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-300"><i class="fa-solid fa-circle-exclamation mr-1"></i> Positif (≥ 6)</span>`
+                : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300"><i class="fa-solid fa-circle-check mr-1"></i> Negatif (&lt; 6)</span>`;
+
+            // 2. Hyperactivity (10-18)
+            document.getElementById('resHyperTotal').innerText = hyper.total;
+            document.getElementById('resHyperCount').innerText = `${hyper.countHigh} / 9`;
+            const isHyperPositive = hyper.countHigh >= 6;
+            document.getElementById('resHyperStatus').innerHTML = isHyperPositive
+                ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-300"><i class="fa-solid fa-circle-exclamation mr-1"></i> Positif (≥ 6)</span>`
+                : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300"><i class="fa-solid fa-circle-check mr-1"></i> Negatif (&lt; 6)</span>`;
+
+            // 3. ADHD Total Subscale (1-18)
+            const adhdTotal = inatt.total + hyper.total;
+            const adhdCount = inatt.countHigh + hyper.countHigh;
+            document.getElementById('resADHDTotal').innerText = adhdTotal;
+            document.getElementById('resADHDCount').innerText = `${adhdCount} / 18`;
+            const isADHDDisyaki = isInattPositive || isHyperPositive;
+            document.getElementById('resADHDStatus').innerHTML = isADHDDisyaki
+                ? `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-red-600 text-white shadow-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> DISYAKI ADHD (${isInattPositive && isHyperPositive ? 'Combined' : isInattPositive ? 'Inattentive' : 'Hyperactive'})</span>`
+                : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-300">Risiko Rendah</span>`;
+
+            // 4. ODD (19-26)
+            document.getElementById('resODDTotal').innerText = odd.total;
+            document.getElementById('resODDCount').innerText = `${odd.countHigh} / 8`;
+            const isODDPositive = odd.countHigh >= 4;
+            document.getElementById('resODDStatus').innerHTML = isODDPositive
+                ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Positif (≥ 4)</span>`
+                : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300"><i class="fa-solid fa-circle-check mr-1"></i> Negatif</span>`;
+
+            // 5. CD (27-40)
+            document.getElementById('resCDTotal').innerText = cd.total;
+            document.getElementById('resCDCount').innerText = `${cd.countHigh} / 14`;
+            const isCDPositive = cd.countHigh >= 3;
+            document.getElementById('resCDStatus').innerHTML = isCDPositive
+                ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Positif (≥ 3)</span>`
+                : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300"><i class="fa-solid fa-circle-check mr-1"></i> Negatif</span>`;
+
+            // 6. Anxiety / Depression (41-47)
+            document.getElementById('resADTotal').innerText = ad.total;
+            document.getElementById('resADCount').innerText = `${ad.countHigh} / 7`;
+            const isADPositive = ad.countHigh >= 3;
+            document.getElementById('resADStatus').innerHTML = isADPositive
+                ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Positif (≥ 3)</span>`
+                : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300"><i class="fa-solid fa-circle-check mr-1"></i> Negatif</span>`;
+
+            // 7. Performance (48-55)
+            const perfAvg = (perf.total / 8).toFixed(2);
+            document.getElementById('resPerfAvg').innerText = perfAvg;
+            document.getElementById('resPerfCount').innerText = `${perf.countHigh} / 8`;
+            const isPerfProblem = perf.countHigh >= 1;
+            document.getElementById('resPerfStatus').innerHTML = isPerfProblem
+                ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-300"><i class="fa-solid fa-circle-exclamation mr-1"></i> Terdapat Masalah (≥ 1 Item Skor 4/5)</span>`
+                : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300"><i class="fa-solid fa-circle-check mr-1"></i> Tiada Masalah Signifikan</span>`;
+
+            // Update Analytics Charts
+            updateCharts({
+                inatt: inatt.total,
+                hyper: hyper.total,
+                odd: odd.total,
+                cd: cd.total,
+                ad: ad.total
+            }, {
+                inatt: isInattPositive,
+                hyper: isHyperPositive,
+                odd: isODDPositive,
+                cd: isCDPositive,
+                ad: isADPositive,
+                perf: isPerfProblem
+            });
+        }
+
+        // Chart Rendering Logic
+        function updateCharts(totals, flags) {
+            // Chart 1: Bar Chart for Total Scores
+            const ctx1 = document.getElementById('symptomsChart').getContext('2d');
+            if (symptomsChartInstance) symptomsChartInstance.destroy();
+
+            symptomsChartInstance = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Inattention', 'Hyperactivity', 'ODD', 'CD', 'Anxiety/Dep'],
+                    datasets: [{
+                        label: 'Jumlah Skor',
+                        data: [totals.inatt, totals.hyper, totals.odd, totals.cd, totals.ad],
+                        backgroundColor: ['#3b82f6', '#06b6d4', '#f59e0b', '#ef4444', '#8b5cf6'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Chart 2: Polar Area Chart for Positive Criteria
+            const ctx2 = document.getElementById('criteriaChart').getContext('2d');
+            if (criteriaChartInstance) criteriaChartInstance.destroy();
+
+            criteriaChartInstance = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Inattention', 'Hyperactivity', 'ODD', 'CD', 'Anxiety/Dep', 'Perf Problem'],
+                    datasets: [{
+                        data: [
+                            flags.inatt ? 1 : 0,
+                            flags.hyper ? 1 : 0,
+                            flags.odd ? 1 : 0,
+                            flags.cd ? 1 : 0,
+                            flags.ad ? 1 : 0,
+                            flags.perf ? 1 : 0
+                        ],
+                        backgroundColor: [
+                            flags.inatt ? '#ef4444' : '#e2e8f0',
+                            flags.hyper ? '#ef4444' : '#e2e8f0',
+                            flags.odd ? '#f59e0b' : '#e2e8f0',
+                            flags.cd ? '#f59e0b' : '#e2e8f0',
+                            flags.ad ? '#f59e0b' : '#e2e8f0',
+                            flags.perf ? '#dc2626' : '#e2e8f0'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        // Utility: Scroll Smoothly to Results
+        function scrollToResults() {
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Utility: Copy Text Summary to Clipboard
+        function copySummaryText() {
+            const childName = document.getElementById('childName').value || 'N/A';
+            const inatt = document.getElementById('resInattCount').innerText;
+            const hyper = document.getElementById('resHyperCount').innerText;
+            const adhdStatus = document.getElementById('resADHDStatus').innerText.replace(/\n/g, ' ');
+            const odd = document.getElementById('resODDCount').innerText;
+            const cd = document.getElementById('resCDCount').innerText;
+            const ad = document.getElementById('resADCount').innerText;
+            const perf = document.getElementById('resPerfAvg').innerText;
+
+            const textToCopy = `LAPORAN RINGKAS NICHQ VANDERBILT (IBU BAPA)
+Nama Kanak-kanak: ${childName}
+Tarikh: ${document.getElementById('assessmentDate').value}
+
+KEPUTUSAN SKOR AUTOMATIK:
+1. Inattention (1-9): Skor tinggi = ${inatt}
+2. Hyperactivity (10-18): Skor tinggi = ${hyper}
+3. Status Subskala ADHD: ${adhdStatus}
+4. ODD (19-26): Skor tinggi = ${odd}
+5. CD (27-40): Skor tinggi = ${cd}
+6. Anxiety/Depression (41-47): Skor tinggi = ${ad}
+7. Purata Prestasi (48-55): ${perf}
+            `;
+
+            const dummy = document.createElement("textarea");
+            document.body.appendChild(dummy);
+            dummy.value = textToCopy;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+
+            showMessage("Keputusan berjaya disalin ke papan klip!", "success");
+        }
+
+        // Reset Form Confirmation
+        function resetFormWithConfirmation() {
+            if (confirm("Adakah anda pasti untuk mengosongkan borang dan memulakan penilaian baharu?")) {
+                document.getElementById('vanderbiltForm').reset();
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('assessmentDate').value = today;
+                updateProgressBar();
+                calculateAndRenderResults();
+                showMessage("Borang telah disifar semula.", "info");
+            }
+        }
+
+        // Notification Message Helper
+        function showMessage(msg, type) {
+            const msgBox = document.getElementById('messageBox');
+            msgBox.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-blue-100', 'text-blue-800');
+            
+            if (type === 'success') {
+                msgBox.classList.add('bg-emerald-100', 'text-emerald-800');
+            } else {
+                msgBox.classList.add('bg-blue-100', 'text-blue-800');
+            }
+            
+            msgBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${msg}`;
+            msgBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            setTimeout(() => {
+                msgBox.classList.add('hidden');
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
