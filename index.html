@@ -693,24 +693,40 @@ function calculateScores() {
         ? '<span class="badge badge-positive">Terdapat Masalah (≥1 Item Skor 4/5)</span>' 
         : '<span class="badge badge-normal">Tiada Masalah Signifikan</span>';
 
-    // Kemas kini Carta Bar
     updateChart([inatt.countHigh, hyper.countHigh, odd.countHigh, cd.countHigh, ad.countHigh]);
 }
 
-// Fungsi Muat Turun PDF
+// Fungsi Muat Turun PDF yang Dioptimumkan (Selesai Masalah PDF Kosong)
 function downloadPDF() {
     const element = document.querySelector('.container');
     const childName = document.getElementById('childName').value || 'Kanak-kanak';
     
+    // Dapatkan kanvas carta dan tukar kepada imej statik sementara
+    const canvas = document.getElementById('vanderbiltChart');
+    const chartImage = canvas.toDataURL('image/png');
+    
+    const chartParent = canvas.parentNode;
+    const imgElement = document.createElement('img');
+    imgElement.src = chartImage;
+    imgElement.style.width = '100%';
+    imgElement.id = 'tempChartImg';
+    
+    canvas.style.display = 'none';
+    chartParent.appendChild(imgElement);
+
     const opt = {
         margin:       [10, 10, 10, 10],
         filename:     `Laporan_Vanderbilt_${childName.replace(/\s+/g, '_')}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
+        html2canvas:  { scale: 2, useCORS: true },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     
-    html2pdf().set(opt).from(element).save();
+    html2pdf().set(opt).from(element).save().then(() => {
+        // Pulihkan semula carta asal selepas PDF selesai dimuat turun
+        chartParent.removeChild(imgElement);
+        canvas.style.display = 'block';
+    });
 }
 
 // Fungsi Hantar ke Google Sheets
